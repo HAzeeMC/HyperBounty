@@ -5,8 +5,7 @@ api-version: "1.21"
 authors: [H_Azee]
 description: Advanced bounty system with killstreaks and hunter missions
 website: https://hazee.dev
-depend: [Vault]
-softdepend: [PlaceholderAPI]
+softdepend: [Vault, PlaceholderAPI]  # ĐỔI THÀNH softdepend
 
 commands:
   bounty:
