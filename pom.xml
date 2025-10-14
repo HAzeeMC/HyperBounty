@@ -28,10 +28,6 @@
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -65,12 +61,7 @@
             <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7.3</version>
-            <scope>provided</scope>
-        </dependency>
+        <!-- ĐÃ XÓA VAULT DEPENDENCY -->
     </dependencies>
 
     <build>
@@ -85,8 +76,6 @@
                     <compilerArgs>
                         <arg>-parameters</arg>
                     </compilerArgs>
-                    <!-- Bỏ qua lỗi missing dependencies -->
-                    <compilerArgument>-Xlint:-options</compilerArgument>
                 </configuration>
             </plugin>
             <plugin>
