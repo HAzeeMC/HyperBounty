@@ -24,7 +24,7 @@ public class VaultEconomyHook {
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().warning("Vault not found! Using internal economy fallback.");
             vaultEnabled = false;
-            return true; // Vẫn return true để plugin hoạt động
+            return true;
         }
         
         try {
@@ -59,8 +59,7 @@ public class VaultEconomyHook {
     
     public boolean has(Player player, double amount) {
         if (!vaultEnabled || economy == null) {
-            // Fallback: giả lập luôn có đủ tiền để test
-            return true;
+            return true; // Fallback
         }
         
         try {
@@ -69,14 +68,13 @@ public class VaultEconomyHook {
             return (Boolean) hasMethod.invoke(economy, player, amount);
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error checking balance with Vault", e);
-            return true; // Fallback
+            return true;
         }
     }
     
     public double getBalance(Player player) {
         if (!vaultEnabled || economy == null) {
-            // Fallback: số dư lớn để test
-            return 1000000.0;
+            return 1000000.0; // Fallback
         }
         
         try {
@@ -86,13 +84,12 @@ public class VaultEconomyHook {
             return ((Number) result).doubleValue();
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error getting balance with Vault", e);
-            return 1000000.0; // Fallback
+            return 1000000.0;
         }
     }
     
     public void withdrawPlayer(Player player, double amount) {
         if (!vaultEnabled || economy == null) {
-            // Fallback: chỉ log lại
             plugin.getLogger().info("FALLBACK: Withdraw " + format(amount) + " from " + player.getName());
             return;
         }
@@ -108,7 +105,6 @@ public class VaultEconomyHook {
     
     public void depositPlayer(Player player, double amount) {
         if (!vaultEnabled || economy == null) {
-            // Fallback: chỉ log lại
             plugin.getLogger().info("FALLBACK: Deposit " + format(amount) + " to " + player.getName());
             return;
         }
@@ -124,7 +120,6 @@ public class VaultEconomyHook {
     
     public String format(double amount) {
         if (!vaultEnabled || economy == null) {
-            // Fallback: format đơn giản
             return decimalFormat.format(amount) + " coins";
         }
         
