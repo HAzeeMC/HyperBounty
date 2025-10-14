@@ -62,7 +62,6 @@ public class BountyGUI {
         });
     }
     
-    // ... rest of the GUI methods with SchedulerUtil wrappers where needed
     public void openBountyList(Player player, int page) {
         SchedulerUtil.runTask(plugin, player, () -> {
             List<BountyEntry> allBounties = plugin.getBountyManager().getActiveBounties();
@@ -117,7 +116,6 @@ public class BountyGUI {
         });
     }
     
-    // ... rest of the methods remain the same
     private ItemStack createBountyItem(BountyEntry bounty) {
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
@@ -154,14 +152,12 @@ public class BountyGUI {
             for (UUID targetUUID : missions) {
                 if (slot >= 43) break;
                 
-                plugin.getBountyManager().getBounty(targetUUID).thenAccept(bounty -> {
-                    if (bounty != null) {
-                        SchedulerUtil.runTask(plugin, () -> {
-                            ItemStack missionItem = createMissionItem(bounty);
-                            gui.setItem(slot, missionItem);
-                        });
-                    }
-                });
+                // FIX: Sử dụng method sync thay vì thenAccept
+                BountyEntry bounty = plugin.getBountyManager().getBounty(targetUUID);
+                if (bounty != null) {
+                    ItemStack missionItem = createMissionItem(bounty);
+                    gui.setItem(slot, missionItem);
+                }
                 
                 slot++;
                 if ((slot - 9) % 9 == 0) {
