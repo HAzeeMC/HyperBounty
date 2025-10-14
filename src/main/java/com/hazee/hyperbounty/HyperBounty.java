@@ -1,159 +1,198 @@
-package com.hazee.hyperbounty;
+package com.hazee.hyperbounty.placeholder;
 
-import com.hazee.hyperbounty.command.BountyCommand;
-import com.hazee.hyperbounty.command.BountyTabCompleter;
-import com.hazee.hyperbounty.config.ConfigManager;
-import com.hazee.hyperbounty.config.MessageManager;
-import com.hazee.hyperbounty.database.DatabaseManager;
-import com.hazee.hyperbounty.listener.GUIListener;
-import com.hazee.hyperbounty.listener.PlayerListener;
+import com.hazee.hyperbounty.HyperBounty;
 import com.hazee.hyperbounty.manager.BountyManager;
 import com.hazee.hyperbounty.manager.CooldownManager;
 import com.hazee.hyperbounty.manager.KillstreakManager;
-import com.hazee.hyperbounty.placeholder.PlaceholderAPIExpansion;
-import com.hazee.hyperbounty.utils.SchedulerUtil;
-import com.hazee.hyperbounty.vault.VaultEconomyHook;
-import org.bukkit.plugin.java.JavaPlugin;
+import com.hazee.hyperbounty.model.BountyEntry;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.logging.Logger;
+import java.util.List;
 
-public class HyperBounty extends JavaPlugin {
+public class PlaceholderAPIExpansion {
     
-    private static HyperBounty instance;
-    private Logger logger;
+    private final HyperBounty plugin;
+    private boolean placeholderApiEnabled = false;
     
-    private ConfigManager configManager;
-    private MessageManager messageManager;
-    private DatabaseManager databaseManager;
-    private VaultEconomyHook economyHook;
-    private PlaceholderAPIExpansion placeholderExpansion;
-    
-    private BountyManager bountyManager;
-    private CooldownManager cooldownManager;
-    private KillstreakManager killstreakManager;
-    
-    @Override
-    public void onEnable() {
-        instance = this;
-        logger = getLogger();
-        
-        // Check for Folia
-        if (SchedulerUtil.isFolia()) {
-            logger.info("Folia detected! Using Folia schedulers.");
-        } else {
-            logger.info("Using Bukkit schedulers.");
-        }
-        
-        initializeManagers();
-        registerCommands();
-        registerListeners();
-        setupPlaceholderAPI();
-        startAutoSave();
-        
-        logger.info("HyperBounty enabled successfully!");
+    public PlaceholderAPIExpansion(HyperBounty plugin) {
+        this.plugin = plugin;
     }
     
-    @Override
-    public void onDisable() {
-        if (placeholderExpansion != null) {
-            placeholderExpansion.unregister();
-        }
-        
-        if (databaseManager != null) {
-            databaseManager.close();
-        }
-        logger.info("HyperBounty disabled!");
-    }
-    
-    private void initializeManagers() {
-        configManager = new ConfigManager(this);
-        messageManager = new MessageManager(this);
-        databaseManager = new DatabaseManager(this);
-        economyHook = new VaultEconomyHook(this);
-        
-        bountyManager = new BountyManager(this);
-        cooldownManager = new CooldownManager(this);
-        killstreakManager = new KillstreakManager(this);
-        
-        configManager.loadConfig();
-        messageManager.loadMessages();
-        databaseManager.initialize();
-        
-        if (!economyHook.setupEconomy()) {
-            logger.severe("Vault economy not found! Disabling plugin...");
-            getServer().getPluginManager().disablePlugin(this);
+    public void register() {
+        if (plugin.getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            plugin.getLogger().info("PlaceholderAPI not found, placeholders disabled.");
+            placeholderApiEnabled = false;
             return;
         }
-    }
-    
-    private void registerCommands() {
-        getCommand("bounty").setExecutor(new BountyCommand(this));
-        getCommand("bounty").setTabCompleter(new BountyTabCompleter(this));
-    }
-    
-    private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-        getServer().getPluginManager().registerEvents(new GUIListener(this), this);
-    }
-    
-    private void setupPlaceholderAPI() {
-        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            placeholderExpansion = new PlaceholderAPIExpansion(this);
-            if (placeholderExpansion.register()) {
-                logger.info("PlaceholderAPI expansion registered successfully!");
-            } else {
-                logger.warning("Failed to register PlaceholderAPI expansion!");
-            }
-        } else {
-            logger.info("PlaceholderAPI not found, placeholders will not be available.");
+        
+        try {
+            // Sử dụng reflection để đăng ký expansion
+            Class<?> placeholderAPI = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+            java.lang.reflect.Method registerMethod = placeholderAPI.getMethod("registerExpansion", Object.class);
+            registerMethod.invoke(null, this);
+            
+            plugin.getLogger().info("PlaceholderAPI expansion registered successfully!");
+            placeholderApiEnabled = true;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to register PlaceholderAPI expansion: " + e.getMessage());
+            placeholderApiEnabled = false;
         }
     }
     
-    private void startAutoSave() {
-        int autoSaveInterval = configManager.getInt("settings.auto-save", 300) * 20;
-        if (autoSaveInterval > 0) {
-            SchedulerUtil.runTaskTimer(this, this::saveData, autoSaveInterval, autoSaveInterval);
+    public void unregister() {
+        if (!placeholderApiEnabled) return;
+        
+        try {
+            Class<?> placeholderAPI = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+            java.lang.reflect.Method unregisterMethod = placeholderAPI.getMethod("unregisterExpansion", Object.class);
+            unregisterMethod.invoke(null, this);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error unregistering PlaceholderAPI expansion: " + e.getMessage());
         }
     }
     
-    private void saveData() {
-        // Auto-save logic if needed
-        logger.fine("Auto-save completed.");
+    // Placeholder methods - sẽ được gọi qua reflection bởi PlaceholderAPI
+    public String onPlaceholderRequest(Player player, @NotNull String params) {
+        if (player == null) return null;
+        
+        String[] args = params.split("_");
+        if (args.length == 0) return null;
+        
+        switch (args[0].toLowerCase()) {
+            case "bounty_amount":
+                return getBountyAmount(player);
+            case "bounty_setter":
+                return getBountySetter(player);
+            case "has_bounty":
+                return hasBounty(player) ? "Yes" : "No";
+            case "killstreak":
+                return String.valueOf(getKillstreak(player));
+            case "active_bounties":
+                return String.valueOf(getActiveBountiesCount());
+            case "cooldown_kill":
+                return formatCooldown(player, "kill");
+            case "cooldown_reward":
+                return formatCooldown(player, "reward");
+            case "cooldown_bounty":
+                return formatCooldown(player, "bounty");
+            case "hunter_missions":
+                return String.valueOf(getHunterMissionsCount(player));
+            case "top_bounty_1":
+                return getTopBounty(1);
+            case "top_bounty_2":
+                return getTopBounty(2);
+            case "top_bounty_3":
+                return getTopBounty(3);
+            case "top_bounty_1_amount":
+                return getTopBountyAmount(1);
+            case "top_bounty_2_amount":
+                return getTopBountyAmount(2);
+            case "top_bounty_3_amount":
+                return getTopBountyAmount(3);
+            default:
+                return null;
+        }
     }
     
-    public static HyperBounty getInstance() {
-        return instance;
+    // Các method helper
+    private String getBountyAmount(Player player) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        BountyEntry bounty = bountyManager.getBounty(player.getUniqueId());
+        return bounty != null ? plugin.getEconomyHook().format(bounty.getAmount()) : "0";
     }
     
-    public ConfigManager getConfigManager() {
-        return configManager;
+    private String getBountySetter(Player player) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        BountyEntry bounty = bountyManager.getBounty(player.getUniqueId());
+        return bounty != null ? bounty.getSetterName() : "None";
     }
     
-    public MessageManager getMessageManager() {
-        return messageManager;
+    private boolean hasBounty(Player player) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        return bountyManager.getBounty(player.getUniqueId()) != null;
     }
     
-    public DatabaseManager getDatabaseManager() {
-        return databaseManager;
+    private int getKillstreak(Player player) {
+        KillstreakManager killstreakManager = plugin.getKillstreakManager();
+        return killstreakManager.getKillstreak(player);
     }
     
-    public VaultEconomyHook getEconomyHook() {
-        return economyHook;
+    private int getActiveBountiesCount() {
+        BountyManager bountyManager = plugin.getBountyManager();
+        return bountyManager.getActiveBounties().size();
     }
     
-    public BountyManager getBountyManager() {
-        return bountyManager;
+    private String formatCooldown(Player player, String type) {
+        CooldownManager cooldownManager = plugin.getCooldownManager();
+        long remaining = 0;
+        
+        switch (type.toLowerCase()) {
+            case "kill":
+                remaining = cooldownManager.getKillCooldownRemaining(player) / 1000;
+                break;
+            case "reward":
+                remaining = cooldownManager.getRewardCooldownRemaining(player) / 1000;
+                break;
+            case "bounty":
+                remaining = cooldownManager.getBountyCooldownRemaining(player) / 1000;
+                break;
+        }
+        
+        return String.valueOf(remaining);
     }
     
-    public CooldownManager getCooldownManager() {
-        return cooldownManager;
+    private int getHunterMissionsCount(Player player) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        return bountyManager.getHunterMissions(player).size();
     }
     
-    public KillstreakManager getKillstreakManager() {
-        return killstreakManager;
+    private String getTopBounty(int position) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        List<BountyEntry> bounties = bountyManager.getActiveBounties();
+        
+        if (position < 1 || position > bounties.size()) {
+            return "None";
+        }
+        
+        bounties.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
+        return bounties.get(position - 1).getTargetName();
     }
     
-    public PlaceholderAPIExpansion getPlaceholderExpansion() {
-        return placeholderExpansion;
+    private String getTopBountyAmount(int position) {
+        BountyManager bountyManager = plugin.getBountyManager();
+        List<BountyEntry> bounties = bountyManager.getActiveBounties();
+        
+        if (position < 1 || position > bounties.size()) {
+            return "0";
+        }
+        
+        bounties.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
+        return plugin.getEconomyHook().format(bounties.get(position - 1).getAmount());
+    }
+    
+    // Methods để PlaceholderAPI reflection gọi đến
+    public String getIdentifier() {
+        return "hyperbounty";
+    }
+    
+    public String getAuthor() {
+        return "H_Azee";
+    }
+    
+    public String getVersion() {
+        return plugin.getDescription().getVersion();
+    }
+    
+    public boolean persist() {
+        return true;
+    }
+    
+    public String onRequest(OfflinePlayer player, String params) {
+        if (player.isOnline()) {
+            return onPlaceholderRequest(player.getPlayer(), params);
+        }
+        return null;
     }
 }
