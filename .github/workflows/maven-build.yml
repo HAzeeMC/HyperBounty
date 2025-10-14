@@ -1,0 +1,104 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [21, 22]
+        paper-version: ['1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4']
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Create test directories
+      run: |
+        mkdir -p test-server/plugins
+        mkdir -p test-server/logs
+
+    - name: Build with Maven
+      run: mvn -B clean package --file pom.xml -Dpaper.version=${{ matrix.paper-version }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify JAR file
+      run: |
+        ls -la target/
+        file target/*.jar
+        jar tf target/*.jar | head -20
+
+    - name: Run tests
+      run: mvn -B test --file pom.xml
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: HyperBounty-${{ matrix.paper-version }}-java-${{ matrix.java-version }}
+        path: target/*.jar
+        retention-days: 7
+
+  quality:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Run code analysis
+      run: mvn -B compile spotbugs:check checkstyle:check --file pom.xml
+
+    - name: Generate dependency report
+      run: mvn -B dependency:tree --file pom.xml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build, quality]
+    if: github.event_name == 'release'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Build release
+      run: mvn -B clean package -DskipTests --file pom.xml
+
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: target/HyperBounty-*.jar
+        asset_name: HyperBounty-${{ github.event.release.tag_name }}.jar
+        asset_content_type: application/java-archive
