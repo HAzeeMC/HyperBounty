@@ -1,0 +1,70 @@
+name: Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      java-version:
+        description: 'Java version'
+        required: true
+        default: '21'
+        type: choice
+        options:
+        - '21'
+        - '22'
+      paper-version:
+        description: 'Paper version'
+        required: true
+        default: '1.21.4'
+        type: choice
+        options:
+        - '1.21'
+        - '1.21.1'
+        - '1.21.2'
+        - '1.21.3'
+        - '1.21.4'
+      build-type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+        - 'debug'
+        - 'release'
+
+jobs:
+  manual-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Build with parameters
+      run: |
+        if [ "${{ inputs.build-type }}" = "debug" ]; then
+          mvn -B clean package -DskipTests -Dpaper.version=${{ inputs.paper-version }} -X
+        else
+          mvn -B clean package -DskipTests -Dpaper.version=${{ inputs.paper-version }}
+        fi
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: HyperBounty-Manual-${{ inputs.paper-version }}-java-${{ inputs.java-version }}
+        path: target/*.jar
+        retention-days: 30
+
+    - name: Display build info
+      run: |
+        echo "Build completed successfully!"
+        echo "Java Version: ${{ inputs.java-version }}"
+        echo "Paper Version: ${{ inputs.paper-version }}"
+        echo "Build Type: ${{ inputs.build-type }}"
+        echo "JAR File: $(ls target/*.jar)"
