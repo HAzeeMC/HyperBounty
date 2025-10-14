@@ -1,6 +1,5 @@
 package com.hazee.hyperbounty.utils;
 
-import com.hazee.hyperbounty.HyperBounty;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -57,18 +56,10 @@ public class SchedulerUtil {
         }
     }
     
-    public static void runTaskTimer(JavaPlugin plugin, Runnable task, long delay, long period) {
+    public static BukkitTask runTaskTimer(JavaPlugin plugin, Runnable task, long delay, long period) {
         if (isFolia()) {
             Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, t -> task.run(), delay, period);
-        } else {
-            Bukkit.getScheduler().runTaskTimer(plugin, task, delay, period);
-        }
-    }
-    
-    public static BukkitTask runTaskTimer(JavaPlugin plugin, Entity entity, Consumer<BukkitTask> task, long delay, long period) {
-        if (isFolia()) {
-            entity.getScheduler().runAtFixedRate(plugin, t -> task.accept(t), null, delay, period);
-            return null;
+            return null; // Folia doesn't return BukkitTask
         } else {
             return Bukkit.getScheduler().runTaskTimer(plugin, task, delay, period);
         }
@@ -98,5 +89,6 @@ public class SchedulerUtil {
         if (task != null && !isFolia()) {
             task.cancel();
         }
+        // Folia tasks are automatically managed
     }
 }
