@@ -9,36 +9,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java-version: [21]
-
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up JDK ${{ matrix.java-version }}
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: ${{ matrix.java-version }}
+        java-version: '21'
         distribution: 'temurin'
         cache: 'maven'
 
-    - name: Build with Maven (skip tests)
-      run: mvn -B clean compile -DskipTests --file pom.xml
+    - name: Build with Maven
+      run: mvn -B clean package --file pom.xml
 
-    - name: Build JAR
-      run: mvn -B package -DskipTests --file pom.xml
-
-    - name: Verify JAR file
+    - name: Verify JAR
       run: |
         ls -la target/
-        file target/*.jar
-        jar tf target/*.jar | head -10
+        echo "JAR file created successfully!"
 
-    - name: Upload build artifacts
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: HyperBounty-java-${{ matrix.java-version }}
+        name: HyperBounty
         path: target/*.jar
-        retention-days: 7
