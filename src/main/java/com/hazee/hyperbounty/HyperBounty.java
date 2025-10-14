@@ -69,6 +69,10 @@ public class HyperBounty extends JavaPlugin {
         messageManager = new MessageManager(this);
         databaseManager = new DatabaseManager(this);
         economyHook = new VaultEconomyHook(this);
+
+        configManager.loadConfig();
+        messageManager.loadMessages();
+        databaseManager.initialize();
         
         bountyManager = new BountyManager(this);
         cooldownManager = new CooldownManager(this);
