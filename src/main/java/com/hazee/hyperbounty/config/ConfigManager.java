@@ -82,24 +82,45 @@ public class ConfigManager {
         return settings.get(path);
     }
     
+    // FIX: Thêm overload methods với default values
     public String getString(String path) {
         return config.getString(path);
+    }
+    
+    public String getString(String path, String defaultValue) {
+        return config.getString(path, defaultValue);
     }
     
     public int getInt(String path) {
         return config.getInt(path);
     }
     
+    public int getInt(String path, int defaultValue) {
+        return config.getInt(path, defaultValue);
+    }
+    
     public double getDouble(String path) {
         return config.getDouble(path);
+    }
+    
+    public double getDouble(String path, double defaultValue) {
+        return config.getDouble(path, defaultValue);
     }
     
     public boolean getBoolean(String path) {
         return config.getBoolean(path);
     }
     
+    public boolean getBoolean(String path, boolean defaultValue) {
+        return config.getBoolean(path, defaultValue);
+    }
+    
     public long getLong(String path) {
         return config.getLong(path);
+    }
+    
+    public long getLong(String path, long defaultValue) {
+        return config.getLong(path, defaultValue);
     }
     
     public List<String> getStringList(String path) {
