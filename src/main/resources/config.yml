@@ -1,0 +1,61 @@
+# HyperBounty Configuration
+# Author: H_Azee
+
+# Database Settings
+database:
+  type: "SQLITE" # SQLITE or MYSQL
+  host: "localhost"
+  port: 3306
+  name: "hyperbounty"
+  username: "username"
+  password: "password"
+
+# Cooldown Settings (in milliseconds)
+cooldowns:
+  kill: 30000    # 30 seconds between killstreak counts
+  reward: 60000  # 1 minute between bounty claims
+  bounty: 120000 # 2 minutes between setting bounties
+
+# Bounty Settings
+bounty:
+  min-amount: 100.0
+  max-amount: 10000.0
+  tax-percent: 5.0
+  auto-remove: true
+  broadcast-enabled: true
+
+# Killstreak Settings
+killstreaks:
+  enabled: true
+  broadcast: true
+  rewards:
+    3: 50.0    # $50 reward for 3 kills
+    5: 100.0   # $100 reward for 5 kills
+    10: 250.0  # $250 reward for 10 kills
+    15: 500.0  # $500 reward for 15 kills
+    20: 1000.0 # $1000 reward for 20 kills
+
+# GUI Settings
+gui:
+  title: "Bounty Hunter"
+  size: 54
+  items:
+    background:
+      material: "BLACK_STAINED_GLASS_PANE"
+      name: " "
+    navigation:
+      material: "COMPASS"
+      name: "&bHunter Missions"
+
+# Hunter Mission Settings
+hunter:
+  enabled: true
+  reward-multiplier: 1.5
+  max-active: 3
+
+# Plugin Settings
+settings:
+  language: "en-english"
+  auto-save: 300 # Auto-save interval in seconds
+  folia-support: true # Enable Folia support
+  placeholderapi-support: true # Enable PlaceholderAPI support
