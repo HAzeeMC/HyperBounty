@@ -60,3 +60,11 @@ temp/
 
 # GitHub Actions
 !.github/workflows/
+
+# Xóa dòng libs/ nếu có
+/libs/
+
+# Giữ các dòng khác
+target/
+.idea/
+*.iml
