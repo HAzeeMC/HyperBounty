@@ -4,6 +4,7 @@ import com.hazee.hyperbounty.HyperBounty;
 import com.hazee.hyperbounty.gui.BountyGUI;
 import com.hazee.hyperbounty.manager.BountyManager;
 import com.hazee.hyperbounty.manager.CooldownManager;
+import com.hazee.hyperbounty.model.BountyEntry; // THÊM IMPORT NÀY
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
