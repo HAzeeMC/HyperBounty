@@ -22,7 +22,6 @@ public class BountyManager {
     }
     
     private void loadBounties() {
-        // Load từ database sync
         List<BountyEntry> bounties = plugin.getDatabaseManager().getActiveBounties();
         SchedulerUtil.runTask(plugin, () -> {
             for (BountyEntry bounty : bounties) {
@@ -55,7 +54,6 @@ public class BountyManager {
             return false;
         }
         
-        // Check if target already has a bounty
         BountyEntry existingBounty = activeBounties.get(target.getUniqueId());
         if (existingBounty != null) {
             Map<String, String> placeholders = new HashMap<>();
@@ -64,7 +62,6 @@ public class BountyManager {
             return false;
         }
         
-        // Create new bounty
         BountyEntry bounty = new BountyEntry(
                 target.getUniqueId(),
                 target.getName(),
@@ -73,14 +70,10 @@ public class BountyManager {
                 amount
         );
         
-        // Charge the setter
         plugin.getEconomyHook().withdrawPlayer(setter, amount);
-        
-        // Save to database and cache
         plugin.getDatabaseManager().saveBounty(bounty);
         activeBounties.put(target.getUniqueId(), bounty);
         
-        // Broadcast message
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("setter", setter.getName());
         placeholders.put("target", target.getName());
@@ -114,19 +107,15 @@ public class BountyManager {
         double taxAmount = bounty.getAmount() * (taxPercent / 100);
         double reward = bounty.getAmount() - taxAmount;
         
-        // Pay the hunter
         plugin.getEconomyHook().depositPlayer(hunter, reward);
         
-        // Mark bounty as completed
         bounty.setCompleted(true);
         bounty.setHunterUUID(hunter.getUniqueId());
         bounty.setHunterName(hunter.getName());
         bounty.setCompletedAt(System.currentTimeMillis());
         
-        // Remove from active bounties
         activeBounties.remove(target.getUniqueId());
         
-        // Send messages
         Map<String, String> placeholders = new HashMap<>();
         placeholders.put("hunter", hunter.getName());
         placeholders.put("target", target.getName());
@@ -136,7 +125,6 @@ public class BountyManager {
         
         plugin.getMessageManager().sendMessage(hunter, "bounty.claim-success", placeholders);
         
-        // Notify the bounty setter if online
         Player setter = plugin.getServer().getPlayer(bounty.getSetterUUID());
         if (setter != null && setter.isOnline()) {
             plugin.getMessageManager().sendMessage(setter, "bounty.claimed-notify", placeholders);
@@ -159,7 +147,6 @@ public class BountyManager {
             return false;
         }
         
-        // Refund the setter
         Player setter = plugin.getServer().getPlayer(bounty.getSetterUUID());
         if (setter != null && setter.isOnline()) {
             plugin.getEconomyHook().depositPlayer(setter, bounty.getAmount());
@@ -168,7 +155,6 @@ public class BountyManager {
             plugin.getMessageManager().sendMessage(setter, "bounty.refunded", placeholders);
         }
         
-        // Remove bounty
         activeBounties.remove(targetUUID);
         return true;
     }
