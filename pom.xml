@@ -20,15 +20,6 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
-        <repository>
-            <id>codemc</id>
-            <url>https://repo.codemc.io/repository/maven-public/</url>
-        </repository>
-        <!-- Local repository cho libs folder -->
-        <repository>
-            <id>local-libs</id>
-            <url>file://${project.basedir}/libs</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -44,32 +35,7 @@
             <version>5.0.1</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-api</artifactId>
-            <version>4.17.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-minimessage</artifactId>
-            <version>4.17.0</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- Dependencies từ local libs -->
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7.3</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>me.clip</groupId>
-            <artifactId>placeholderapi</artifactId>
-            <version>2.11.6</version>
-            <scope>provided</scope>
-        </dependency>
+        <!-- ĐÃ XÓA VAULT VÀ PLACEHOLDERAPI DEPENDENCIES -->
     </dependencies>
 
     <build>
