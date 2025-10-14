@@ -11,7 +11,7 @@ import java.util.logging.Level;
 public class VaultEconomyHook {
     
     private final HyperBounty plugin;
-    private Object economy; // Sử dụng Object thay vì Economy cụ thể
+    private Object economy;
     private final DecimalFormat decimalFormat;
     private boolean vaultEnabled = false;
     
@@ -23,16 +23,17 @@ public class VaultEconomyHook {
     public boolean setupEconomy() {
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().warning("Vault not found! Using internal economy fallback.");
-            return setupFallbackEconomy();
+            vaultEnabled = false;
+            return true; // Vẫn return true để plugin hoạt động
         }
         
         try {
-            // Sử dụng reflection để tránh dependency lúc compile
             Class<?> economyClass = Class.forName("net.milkbowl.vault.economy.Economy");
             RegisteredServiceProvider<?> rsp = Bukkit.getServicesManager().getRegistration(economyClass);
             if (rsp == null) {
                 plugin.getLogger().warning("Vault economy provider not found! Using fallback.");
-                return setupFallbackEconomy();
+                vaultEnabled = false;
+                return true;
             }
             
             economy = rsp.getProvider();
@@ -42,25 +43,24 @@ public class VaultEconomyHook {
                 plugin.getLogger().info("Vault economy hooked successfully: " + economy.getClass().getSimpleName());
             } else {
                 plugin.getLogger().warning("Vault economy provider is null! Using fallback.");
-                return setupFallbackEconomy();
             }
             
             return true;
         } catch (ClassNotFoundException e) {
             plugin.getLogger().warning("Vault economy class not found! Using fallback.");
-            return setupFallbackEconomy();
+            vaultEnabled = false;
+            return true;
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Error setting up Vault economy", e);
+            vaultEnabled = false;
+            return true;
         }
     }
     
-    private boolean setupFallbackEconomy() {
-        plugin.getLogger().warning("Using internal economy fallback. Real economy operations will not work.");
-        economy = new FallbackEconomy();
-        return true; // Vẫn return true để plugin hoạt động
-    }
-    
     public boolean has(Player player, double amount) {
-        if (!vaultEnabled) {
-            return true; // Fallback: luôn return true
+        if (!vaultEnabled || economy == null) {
+            // Fallback: giả lập luôn có đủ tiền để test
+            return true;
         }
         
         try {
@@ -69,28 +69,31 @@ public class VaultEconomyHook {
             return (Boolean) hasMethod.invoke(economy, player, amount);
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error checking balance with Vault", e);
-            return true;
+            return true; // Fallback
         }
     }
     
     public double getBalance(Player player) {
-        if (!vaultEnabled) {
-            return 1000000.0; // Fallback: số dư lớn
+        if (!vaultEnabled || economy == null) {
+            // Fallback: số dư lớn để test
+            return 1000000.0;
         }
         
         try {
             Class<?> economyClass = Class.forName("net.milkbowl.vault.economy.Economy");
             java.lang.reflect.Method getBalanceMethod = economyClass.getMethod("getBalance", Player.class);
-            return (Double) getBalanceMethod.invoke(economy, player);
+            Object result = getBalanceMethod.invoke(economy, player);
+            return ((Number) result).doubleValue();
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Error getting balance with Vault", e);
-            return 1000000.0;
+            return 1000000.0; // Fallback
         }
     }
     
     public void withdrawPlayer(Player player, double amount) {
-        if (!vaultEnabled) {
-            plugin.getLogger().info("FALLBACK: Withdraw " + amount + " from " + player.getName());
+        if (!vaultEnabled || economy == null) {
+            // Fallback: chỉ log lại
+            plugin.getLogger().info("FALLBACK: Withdraw " + format(amount) + " from " + player.getName());
             return;
         }
         
@@ -104,8 +107,9 @@ public class VaultEconomyHook {
     }
     
     public void depositPlayer(Player player, double amount) {
-        if (!vaultEnabled) {
-            plugin.getLogger().info("FALLBACK: Deposit " + amount + " to " + player.getName());
+        if (!vaultEnabled || economy == null) {
+            // Fallback: chỉ log lại
+            plugin.getLogger().info("FALLBACK: Deposit " + format(amount) + " to " + player.getName());
             return;
         }
         
@@ -119,7 +123,8 @@ public class VaultEconomyHook {
     }
     
     public String format(double amount) {
-        if (!vaultEnabled) {
+        if (!vaultEnabled || economy == null) {
+            // Fallback: format đơn giản
             return decimalFormat.format(amount) + " coins";
         }
         
@@ -135,10 +140,5 @@ public class VaultEconomyHook {
     
     public boolean isVaultEnabled() {
         return vaultEnabled;
-    }
-    
-    // Fallback economy implementation
-    private static class FallbackEconomy {
-        // Empty class for fallback
     }
 }
