@@ -4,7 +4,6 @@ import com.hazee.hyperbounty.HyperBounty;
 import com.hazee.hyperbounty.manager.BountyManager;
 import com.hazee.hyperbounty.manager.CooldownManager;
 import com.hazee.hyperbounty.manager.KillstreakManager;
-import com.hazee.hyperbounty.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,6 +11,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PlayerListener implements Listener {
@@ -31,11 +31,8 @@ public class PlayerListener implements Listener {
             return;
         }
         
-        // Use Folia-compatible scheduling
-        SchedulerUtil.runTask(plugin, () -> {
-            handleBountyClaim(killer, victim);
-            handleKillstreak(killer, victim);
-        });
+        handleBountyClaim(killer, victim);
+        handleKillstreak(killer, victim);
     }
     
     private void handleBountyClaim(Player killer, Player victim) {
@@ -44,20 +41,17 @@ public class PlayerListener implements Listener {
         
         if (cooldownManager.isOnRewardCooldown(killer)) {
             long remaining = cooldownManager.getRewardCooldownRemaining(killer) / 1000;
-            Map<String, String> placeholders = Map.of("cooldown", String.valueOf(remaining));
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("cooldown", String.valueOf(remaining));
             plugin.getMessageManager().sendMessage(killer, "cooldown.reward", placeholders);
             return;
         }
         
-        bountyManager.getBounty(victim.getUniqueId()).thenAccept(bounty -> {
-            if (bounty != null) {
-                bountyManager.claimBounty(killer, victim).thenAccept(success -> {
-                    if (success) {
-                        cooldownManager.setRewardCooldown(killer);
-                    }
-                });
-            }
-        });
+        // FIX: Sử dụng method đơn giản thay vì thenAccept
+        if (bountyManager.getBounty(victim.getUniqueId()) != null) {
+            bountyManager.claimBounty(killer, victim);
+            cooldownManager.setRewardCooldown(killer);
+        }
     }
     
     private void handleKillstreak(Player killer, Player victim) {
@@ -77,7 +71,6 @@ public class PlayerListener implements Listener {
     
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
         // Load player data if needed
     }
     
