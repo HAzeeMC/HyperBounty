@@ -47,7 +47,6 @@ public class PlayerListener implements Listener {
             return;
         }
         
-        // FIX: Sử dụng method đơn giản thay vì thenAccept
         if (bountyManager.getBounty(victim.getUniqueId()) != null) {
             bountyManager.claimBounty(killer, victim);
             cooldownManager.setRewardCooldown(killer);
@@ -65,13 +64,11 @@ public class PlayerListener implements Listener {
         killstreakManager.handleKill(killer, victim);
         cooldownManager.setKillCooldown(killer);
         
-        // Reset victim's killstreak
         killstreakManager.resetKillstreak(victim);
     }
     
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // Load player data if needed
     }
     
     @EventHandler
