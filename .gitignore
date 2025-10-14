@@ -1,0 +1,62 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+bin/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+!src/main/resources/
+
+# Server files
+test-server/
+server/
+plugins/
+world/
+world_nether/
+world_the_end/
+cache/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Build artifacts
+*.jar
+!target/*.jar
+
+# Environment variables
+.env
+*.env
+
+# Temporary files
+tmp/
+temp/
+
+# GitHub Actions
+!.github/workflows/
