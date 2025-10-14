@@ -10,6 +10,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class BountyCommand implements CommandExecutor {
@@ -81,7 +82,8 @@ public class BountyCommand implements CommandExecutor {
         CooldownManager cooldownManager = plugin.getCooldownManager();
         if (cooldownManager.isOnBountyCooldown(player)) {
             long remaining = cooldownManager.getBountyCooldownRemaining(player) / 1000;
-            Map<String, String> placeholders = Map.of("cooldown", String.valueOf(remaining));
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("cooldown", String.valueOf(remaining));
             plugin.getMessageManager().sendMessage(player, "cooldown.bounty", placeholders);
             return;
         }
@@ -98,11 +100,11 @@ public class BountyCommand implements CommandExecutor {
             return;
         }
         
-        plugin.getBountyManager().setBounty(player, target, amount).thenAccept(success -> {
-            if (success) {
-                cooldownManager.setBountyCooldown(player);
-            }
-        });
+        BountyManager bountyManager = plugin.getBountyManager();
+        boolean success = bountyManager.setBounty(player, target, amount);
+        if (success) {
+            cooldownManager.setBountyCooldown(player);
+        }
     }
     
     private void handleRemoveBounty(Player player, String[] args) {
@@ -126,7 +128,8 @@ public class BountyCommand implements CommandExecutor {
         boolean removed = bountyManager.removeBounty(player, target.getUniqueId());
         
         if (removed) {
-            Map<String, String> placeholders = Map.of("target", target.getName());
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("target", target.getName());
             plugin.getMessageManager().sendMessage(player, "bounty.removed", placeholders);
         } else {
             plugin.getMessageManager().sendMessage(player, "bounty.not-found");
@@ -145,19 +148,20 @@ public class BountyCommand implements CommandExecutor {
             target = player;
         }
         
-        plugin.getBountyManager().getBounty(target.getUniqueId()).thenAccept(bounty -> {
-            if (bounty != null) {
-                Map<String, String> placeholders = Map.of(
-                        "target", target.getName(),
-                        "amount", plugin.getEconomyHook().format(bounty.getAmount()),
-                        "setter", bounty.getSetterName()
-                );
-                plugin.getMessageManager().sendMessage(player, "bounty.info", placeholders);
-            } else {
-                Map<String, String> placeholders = Map.of("target", target.getName());
-                plugin.getMessageManager().sendMessage(player, "bounty.no-bounty", placeholders);
-            }
-        });
+        BountyManager bountyManager = plugin.getBountyManager();
+        BountyEntry bounty = bountyManager.getBounty(target.getUniqueId());
+        
+        if (bounty != null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("target", target.getName());
+            placeholders.put("amount", plugin.getEconomyHook().format(bounty.getAmount()));
+            placeholders.put("setter", bounty.getSetterName());
+            plugin.getMessageManager().sendMessage(player, "bounty.info", placeholders);
+        } else {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("target", target.getName());
+            plugin.getMessageManager().sendMessage(player, "bounty.no-bounty", placeholders);
+        }
     }
     
     private void handleListBounties(Player player) {
