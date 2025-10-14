@@ -1,8 +1,6 @@
 package com.hazee.hyperbounty.config;
 
 import com.hazee.hyperbounty.HyperBounty;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -15,14 +13,12 @@ import java.util.Map;
 public class MessageManager {
 
     private final HyperBounty plugin;
-    private final MiniMessage miniMessage;
     private FileConfiguration messages;
     private String currentLanguage;
     private Map<String, String> messageCache;
 
     public MessageManager(HyperBounty plugin) {
         this.plugin = plugin;
-        this.miniMessage = MiniMessage.miniMessage();
         this.messageCache = new HashMap<>();
     }
 
@@ -48,24 +44,21 @@ public class MessageManager {
         }
     }
 
-    // ✅ Fix: Cho phép ký hiệu &a, &b... hoạt động
-    public Component getMessage(String path) {
+    // ✅ Trả về String có màu
+    public String getMessage(String path) {
         String message = messageCache.getOrDefault(path, "Message not found: " + path);
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        // escapeTokens() để MiniMessage không phá ký hiệu còn sót
-        return miniMessage.deserialize(MiniMessage.miniMessage().escapeTokens(message));
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
-    // ✅ Fix: Hỗ trợ placeholders + &màu
-    public Component getMessage(String path, Map<String, String> placeholders) {
+    // ✅ Có hỗ trợ placeholder {key}
+    public String getMessage(String path, Map<String, String> placeholders) {
         String message = messageCache.getOrDefault(path, "Message not found: " + path);
 
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             message = message.replace("{" + entry.getKey() + "}", entry.getValue());
         }
 
-        message = ChatColor.translateAlternateColorCodes('&', message);
-        return miniMessage.deserialize(MiniMessage.miniMessage().escapeTokens(message));
+        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     public void sendMessage(Player player, String path) {
