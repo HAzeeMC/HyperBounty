@@ -29,12 +29,11 @@ public class BountyGUI {
     
     public void openMainMenu(Player player) {
         SchedulerUtil.runTask(plugin, player, () -> {
-            String title = plugin.getConfigManager().getString("gui.title", "Bounty Hunter");
-            int size = plugin.getConfigManager().getInt("gui.size", 54);
+            String title = plugin.getConfigManager().getString("gui.title");
+            int size = plugin.getConfigManager().getInt("gui.size");
             
             Inventory gui = Bukkit.createInventory(player, size, Component.text(title));
             
-            // Add bounty list items
             List<BountyEntry> bounties = plugin.getBountyManager().getActiveBounties();
             int slot = 10;
             
@@ -54,7 +53,6 @@ public class BountyGUI {
                 }
             }
             
-            // Add navigation and info items
             guiBuilder.addNavigationItems(gui, player);
             guiBuilder.addPlayerInfoItem(gui, player);
             
@@ -73,7 +71,7 @@ public class BountyGUI {
             
             playerPages.put(player.getUniqueId(), page);
             
-            String title = plugin.getConfigManager().getString("gui.title", "Bounty Hunter") + " - Page " + page;
+            String title = plugin.getConfigManager().getString("gui.title") + " - Page " + page;
             Inventory gui = Bukkit.createInventory(player, 54, Component.text(title));
             
             int startIndex = (page - 1) * itemsPerPage;
@@ -85,7 +83,6 @@ public class BountyGUI {
                 gui.setItem(i - startIndex, bountyItem);
             }
             
-            // Add pagination items
             if (page > 1) {
                 ItemStack previousPage = guiBuilder.createNavigationItem(
                         Material.ARROW, 
@@ -104,7 +101,6 @@ public class BountyGUI {
                 gui.setItem(53, nextPage);
             }
             
-            // Add page info
             ItemStack pageInfo = guiBuilder.createNavigationItem(
                     Material.PAPER,
                     "Page " + page + "/" + totalPages,
@@ -120,11 +116,9 @@ public class BountyGUI {
         ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) skull.getItemMeta();
         
-        // Try to set skull owner
         try {
             meta.setOwningPlayer(Bukkit.getOfflinePlayer(bounty.getTargetUUID()));
         } catch (Exception e) {
-            // Fallback if skull cannot be set
         }
         
         meta.displayName(Component.text("§6" + bounty.getTargetName() + "'s Bounty"));
@@ -152,7 +146,6 @@ public class BountyGUI {
             for (UUID targetUUID : missions) {
                 if (slot >= 43) break;
                 
-                // FIX: Sử dụng method sync thay vì thenAccept
                 BountyEntry bounty = plugin.getBountyManager().getBounty(targetUUID);
                 if (bounty != null) {
                     ItemStack missionItem = createMissionItem(bounty);
