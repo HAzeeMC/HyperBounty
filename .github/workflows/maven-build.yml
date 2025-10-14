@@ -25,7 +25,7 @@ jobs:
     - name: Verify build
       run: |
         ls -la target/
-        echo "Build completed successfully!"
+        echo "✅ Build completed successfully!"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
