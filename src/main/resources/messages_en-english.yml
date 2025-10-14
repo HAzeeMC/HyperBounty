@@ -1,0 +1,82 @@
+#==========================================================================================================================#
+#         ,--,                                                                                                             #
+#       ,--.'|                                            ,---,.                                        ___                #
+#    ,--,  | :           ,-.----.                       ,'  .'  \                                     ,--.'|_              #
+# ,---.'|  : '           \    /  \             __  ,-.,---.' .' |   ,---.           ,--,      ,---,   |  | :,'             #
+# |   | : _' |           |   :    |          ,' ,'/ /||   |  |: |  '   ,'\        ,'_ /|  ,-+-. /  |  :  : ' :             #
+# :   : |.'  |      .--, |   | .\ :   ,---.  '  | |' |:   :  :  / /   /   |  .--. |  | : ,--.'|'   |.;__,'  /       .--,   # 
+# |   ' '  ; :    /_ ./| .   : |: |  /     \ |  |   ,':   |    ; .   ; ,. :,'_ /| :  . ||   |  ,"' ||  |   |      /_ ./|   # 
+# '   |  .'. | , ' , ' : |   |  \ : /    /  |'  :  /  |   :     \'   | |: :|  ' | |  . .|   | /  | |:__,'| :   , ' , ' :   #
+# |   | :  | '/___/ \: | |   : .  |.    ' / ||  | '   |   |   . |'   | .; :|  | ' |  | ||   | |  | |  '  : |__/___/ \: |   #
+# '   : |  : ; .  \  ' | :     |`-''   ;   /|;  : |   '   :  '; ||   :    |:  | : ;  ; ||   | |  |/   |  | '.'|.  \  ' |   #
+# |   | '  ,/   \  ;   : :   : :   '   |  / ||  , ;   |   |  | ;  \   \  / '  :  `--'   \   | |--'    ;  :    ; \  ;   :   # 
+# ;   : ;--'     \  \  ; |   | :   |   :    | ---'    |   :   /    `----'  :  ,      .-./   |/        |  ,   /   \  \  ;   #
+# |   ,/          :  \  \`---'.|    \   \  /          |   | ,'              `--`----'   '---'          ---`-'     :  \  \  #
+# '---'            \  ' ;  `---`     `----'           `----'                                                       \  ' ;  #
+#                   `--`                                                                                            `--`   #
+#==========================================================================================================================#
+
+# HyperBounty English Messages
+# Author: H_Azee
+
+# Command Messages
+command:
+  unknown: "&cUnknown command. Use &6/bounty help &cfor help."
+  no-permission: "&cYou don't have permission to use this command."
+  usage-set: "&cUsage: &6/bounty set <player> <amount>"
+  usage-remove: "&cUsage: &6/bounty remove <player>"
+  reloaded: "&aConfiguration reloaded successfully!"
+  help-line-1: "&6=== HyperBounty Help ==="
+  help-line-2: "&e/bounty &7- Open bounty menu"
+  help-line-3: "&e/bounty set <player> <amount> &7- Set bounty on player"
+  help-line-4: "&e/bounty check [player] &7- Check bounty status"
+  help-line-5: "&e/bounty list &7- List all active bounties"
+  help-line-6: "&e/bounty help &7- Show this help"
+  help-line-7: "&c/bounty remove <player> &7- Remove bounty (Admin)"
+  help-line-8: "&c/bounty reload &7- Reload config (Admin)"
+
+# Bounty Messages
+bounty:
+  set-success: "&aYou set a bounty of &e{amount} &aon &c{target}&a!"
+  already-exists: "&c{target} already has an active bounty!"
+  not-found: "&cNo active bounty found for this player."
+  claim-success: "&aYou claimed the bounty on &c{target} &aand received &e{reward}&a! (&7Tax: {tax}&a)"
+  claimed-notify: "&aYour bounty on &c{target} &ahas been claimed by &e{hunter}&a!"
+  removed: "&aBounty on &c{target} &ahas been removed and refunded."
+  refunded: "&aYour bounty has been removed. &e{amount} &ahas been refunded."
+  cannot-self: "&cYou cannot set a bounty on yourself!"
+  amount-too-low: "&cBounty amount must be at least &e{min_amount}&c!"
+  amount-too-high: "&cBounty amount cannot exceed &e{max_amount}&c!"
+  insufficient-funds: "&cYou don't have enough money to set this bounty!"
+  invalid-amount: "&cPlease enter a valid bounty amount."
+  info: "&6{target} &ehas a bounty of &6{amount} &eset by &a{setter}&e."
+  no-bounty: "&7{target} &edoes not have an active bounty."
+  broadcast: "&6&lBOUNTY! &e{setter} &6set a bounty of &e{amount} &6on &c{target}&6!"
+
+# Cooldown Messages
+cooldown:
+  kill: "&cYou're on kill cooldown! Wait {cooldown}s."
+  reward: "&cYou're on reward cooldown! Wait {cooldown}s."
+  bounty: "&cYou're on bounty cooldown! Wait {cooldown}s."
+
+# Killstreak Messages
+killstreak:
+  reward: "&6&lKILLSTREAK! &eYou reached {streak} kills and received &6{reward}&e!"
+  broadcast: "&6&lKILLSTREAK! &e{player} &6reached {streak} kills and received &6{reward}&6!"
+
+# Hunter Messages
+hunter:
+  mission-added: "&aYou accepted the bounty mission on &c{target}&a!"
+  mission-completed: "&aYou completed the bounty mission on &c{target}&a!"
+  max-missions: "&cYou have reached the maximum number of active missions!"
+
+# Player Messages
+player:
+  not-found: "&cPlayer not found or offline."
+  offline: "&cThis player is currently offline."
+
+# GUI Titles
+gui:
+  main-title: "Bounty Hunter"
+  missions-title: "Hunter Missions"
+  list-title: "Bounty List"

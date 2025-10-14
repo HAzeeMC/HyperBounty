@@ -1,9 +1,10 @@
 # HyperBounty Configuration
 # Author: H_Azee
 
-# Database Settings
+# Storage Settings
+# Available types: SQLITE, MYSQL, YAML
 database:
-  type: "SQLITE" # SQLITE or MYSQL
+  type: "SQLITE" # SQLITE, MYSQL, or YAML
   host: "localhost"
   port: 3306
   name: "hyperbounty"

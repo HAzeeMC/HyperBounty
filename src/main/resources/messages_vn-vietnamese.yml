@@ -1,0 +1,82 @@
+#==========================================================================================================================#
+#         ,--,                                                                                                             #
+#       ,--.'|                                            ,---,.                                        ___                #
+#    ,--,  | :           ,-.----.                       ,'  .'  \                                     ,--.'|_              #
+# ,---.'|  : '           \    /  \             __  ,-.,---.' .' |   ,---.           ,--,      ,---,   |  | :,'             #
+# |   | : _' |           |   :    |          ,' ,'/ /||   |  |: |  '   ,'\        ,'_ /|  ,-+-. /  |  :  : ' :             #
+# :   : |.'  |      .--, |   | .\ :   ,---.  '  | |' |:   :  :  / /   /   |  .--. |  | : ,--.'|'   |.;__,'  /       .--,   # 
+# |   ' '  ; :    /_ ./| .   : |: |  /     \ |  |   ,':   |    ; .   ; ,. :,'_ /| :  . ||   |  ,"' ||  |   |      /_ ./|   # 
+# '   |  .'. | , ' , ' : |   |  \ : /    /  |'  :  /  |   :     \'   | |: :|  ' | |  . .|   | /  | |:__,'| :   , ' , ' :   #
+# |   | :  | '/___/ \: | |   : .  |.    ' / ||  | '   |   |   . |'   | .; :|  | ' |  | ||   | |  | |  '  : |__/___/ \: |   #
+# '   : |  : ; .  \  ' | :     |`-''   ;   /|;  : |   '   :  '; ||   :    |:  | : ;  ; ||   | |  |/   |  | '.'|.  \  ' |   #
+# |   | '  ,/   \  ;   : :   : :   '   |  / ||  , ;   |   |  | ;  \   \  / '  :  `--'   \   | |--'    ;  :    ; \  ;   :   # 
+# ;   : ;--'     \  \  ; |   | :   |   :    | ---'    |   :   /    `----'  :  ,      .-./   |/        |  ,   /   \  \  ;   #
+# |   ,/          :  \  \`---'.|    \   \  /          |   | ,'              `--`----'   '---'          ---`-'     :  \  \  #
+# '---'            \  ' ;  `---`     `----'           `----'                                                       \  ' ;  #
+#                   `--`                                                                                            `--`   #
+#==========================================================================================================================#
+
+# HyperBounty Vietnamese Messages
+# Author: H_Azee
+
+# Command Messages
+command:
+  unknown: "&cLệnh không tồn tại. Dùng &6/bounty help &cđể xem trợ giúp."
+  no-permission: "&cBạn không có quyền sử dụng lệnh này."
+  usage-set: "&cCú pháp: &6/bounty set <người chơi> <số tiền>"
+  usage-remove: "&cCú pháp: &6/bounty remove <người chơi>"
+  reloaded: "&aĐã tải lại cấu hình thành công!"
+  help-line-1: "&6=== Trợ Giúp HyperBounty ==="
+  help-line-2: "&e/bounty &7- Mở menu truy nã"
+  help-line-3: "&e/bounty set <người chơi> <số tiền> &7- Đặt tiền truy nã"
+  help-line-4: "&e/bounty check [người chơi] &7- Kiểm tra tiền truy nã"
+  help-line-5: "&e/bounty list &7- Danh sách truy nã đang hoạt động"
+  help-line-6: "&e/bounty help &7- Hiện trợ giúp này"
+  help-line-7: "&c/bounty remove <người chơi> &7- Xóa truy nã (Quản trị)"
+  help-line-8: "&c/bounty reload &7- Tải lại cấu hình (Quản trị)"
+
+# Bounty Messages
+bounty:
+  set-success: "&aBạn đã đặt tiền truy nã &e{amount} &alên &c{target}&a!"
+  already-exists: "&c{target} đã có tiền truy nã đang hoạt động!"
+  not-found: "&cKhông tìm thấy tiền truy nã cho người chơi này."
+  claim-success: "&aBạn đã nhận tiền truy nã trên &c{target} &avà nhận được &e{reward}&a! (&7Thuế: {tax}&a)"
+  claimed-notify: "&aTiền truy nã của bạn trên &c{target} &ađã được nhận bởi &e{hunter}&a!"
+  removed: "&aĐã xóa tiền truy nã trên &c{target} &avà hoàn tiền."
+  refunded: "&aTiền truy nã của bạn đã được xóa. Đã hoàn lại &e{amount}&a."
+  cannot-self: "&cBạn không thể đặt tiền truy nã lên chính mình!"
+  amount-too-low: "&cTiền truy nã phải ít nhất &e{min_amount}&c!"
+  amount-too-high: "&cTiền truy nã không thể vượt quá &e{max_amount}&c!"
+  insufficient-funds: "&cBạn không có đủ tiền để đặt truy nã!"
+  invalid-amount: "&cVui lòng nhập số tiền hợp lệ."
+  info: "&6{target} &eđang bị truy nã &6{amount} &ebởi &a{setter}&e."
+  no-bounty: "&7{target} &ekhông có tiền truy nã đang hoạt động."
+  broadcast: "&6&lTRUY NÃ! &e{setter} &6đã treo thưởng &e{amount} &6lên &c{target}&6!"
+
+# Cooldown Messages
+cooldown:
+  kill: "&cĐang trong thời gian chờ hạ gục! Chờ {cooldown}s."
+  reward: "&cĐang trong thời gian chờ nhận thưởng! Chờ {cooldown}s."
+  bounty: "&cĐang trong thời gian chờ đặt truy nã! Chờ {cooldown}s."
+
+# Killstreak Messages
+killstreak:
+  reward: "&6&lCHUỖI HẠ GỤC! &eBạn đạt {streak} mạng và nhận &6{reward}&e!"
+  broadcast: "&6&lCHUỖI HẠ GỤC! &e{player} &6đạt {streak} mạng và nhận &6{reward}&6!"
+
+# Hunter Messages
+hunter:
+  mission-added: "&aBạn đã nhận nhiệm vụ truy nã &c{target}&a!"
+  mission-completed: "&aBạn đã hoàn thành nhiệm vụ truy nã &c{target}&a!"
+  max-missions: "&cBạn đã đạt số nhiệm vụ tối đa!"
+
+# Player Messages
+player:
+  not-found: "&cKhông tìm thấy người chơi hoặc đang offline."
+  offline: "&cNgười chơi này hiện đang offline."
+
+# GUI Titles
+gui:
+  main-title: "Thợ Săn Truy Nã"
+  missions-title: "Nhiệm Vụ Thợ Săn"
+  list-title: "Danh Sách Truy Nã"

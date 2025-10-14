@@ -1,0 +1,35 @@
+name: HyperBounty
+version: 1.0.0
+main: com.hazee.hyperbounty.HyperBounty
+api-version: "1.21"
+authors: [H_Azee]
+description: Advanced bounty system with killstreaks and hunter missions
+website: https://hazee.dev
+depend: [Vault]
+softdepend: [PlaceholderAPI]
+
+commands:
+  bounty:
+    description: Main bounty command
+    usage: /bounty
+    aliases: [b, truyna, tn]
+
+permissions:
+  hyperbounty.*:
+    description: All HyperBounty permissions
+    children:
+      hyperbounty.use: true
+      hyperbounty.admin: true
+      hyperbounty.bypass: true
+  
+  hyperbounty.use:
+    description: Use bounty commands
+    default: true
+  
+  hyperbounty.admin:
+    description: Admin commands
+    default: op
+  
+  hyperbounty.bypass:
+    description: Bypass cooldowns
+    default: op
