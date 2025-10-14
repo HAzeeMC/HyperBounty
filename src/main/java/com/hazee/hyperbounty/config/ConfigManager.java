@@ -39,7 +39,6 @@ public class ConfigManager {
     private void loadSettings() {
         settings.clear();
         
-        // Database settings
         settings.put("database.type", config.getString("database.type", "SQLITE"));
         settings.put("database.host", config.getString("database.host", "localhost"));
         settings.put("database.port", config.getInt("database.port", 3306));
@@ -47,30 +46,28 @@ public class ConfigManager {
         settings.put("database.username", config.getString("database.username", "username"));
         settings.put("database.password", config.getString("database.password", "password"));
         
-        // Cooldown settings
         settings.put("cooldowns.kill", config.getLong("cooldowns.kill", 30000L));
         settings.put("cooldowns.reward", config.getLong("cooldowns.reward", 60000L));
         settings.put("cooldowns.bounty", config.getLong("cooldowns.bounty", 120000L));
         
-        // Bounty settings
         settings.put("bounty.min-amount", config.getDouble("bounty.min-amount", 100.0));
         settings.put("bounty.max-amount", config.getDouble("bounty.max-amount", 10000.0));
         settings.put("bounty.tax-percent", config.getDouble("bounty.tax-percent", 5.0));
         settings.put("bounty.auto-remove", config.getBoolean("bounty.auto-remove", true));
+        settings.put("bounty.broadcast-enabled", config.getBoolean("bounty.broadcast-enabled", true));
         
-        // Killstreak settings
         settings.put("killstreaks.enabled", config.getBoolean("killstreaks.enabled", true));
-        settings.put("killstreaks.rewards", config.getConfigurationSection("killstreaks.rewards"));
+        settings.put("killstreaks.broadcast", config.getBoolean("killstreaks.broadcast", true));
         
-        // GUI settings
         settings.put("gui.title", config.getString("gui.title", "Bounty Hunter"));
         settings.put("gui.size", config.getInt("gui.size", 54));
-        settings.put("gui.items", config.getConfigurationSection("gui.items"));
         
-        // Hunter mission settings
         settings.put("hunter.enabled", config.getBoolean("hunter.enabled", true));
         settings.put("hunter.reward-multiplier", config.getDouble("hunter.reward-multiplier", 1.5));
         settings.put("hunter.max-active", config.getInt("hunter.max-active", 3));
+        
+        settings.put("settings.language", config.getString("settings.language", "en-english"));
+        settings.put("settings.auto-save", config.getInt("settings.auto-save", 300));
     }
     
     public void reloadConfig() {
@@ -82,13 +79,13 @@ public class ConfigManager {
         return settings.get(path);
     }
     
-    // FIX: Thêm overload methods với default values
     public String getString(String path) {
         return config.getString(path);
     }
     
     public String getString(String path, String defaultValue) {
-        return config.getString(path, defaultValue);
+        String result = config.getString(path);
+        return result != null ? result : defaultValue;
     }
     
     public int getInt(String path) {
