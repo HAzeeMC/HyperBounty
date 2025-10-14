@@ -3,8 +3,6 @@ name: Java CI with Maven
 on:
   push:
     branches: [ "main", "master", "develop" ]
-  pull_request:
-    branches: [ "main", "master", "develop" ]
 
 jobs:
   build:
@@ -24,10 +22,10 @@ jobs:
     - name: Build with Maven
       run: mvn -B clean package --file pom.xml
 
-    - name: Verify JAR
+    - name: Verify build
       run: |
         ls -la target/
-        echo "JAR file created successfully!"
+        echo "Build completed successfully!"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
