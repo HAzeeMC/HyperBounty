@@ -3,7 +3,7 @@ package com.hazee.hyperbounty.listener;
 import com.hazee.hyperbounty.HyperBounty;
 import com.hazee.hyperbounty.gui.BountyGUI;
 import com.hazee.hyperbounty.manager.BountyManager;
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,6 +12,9 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GUIListener implements Listener {
     
@@ -73,8 +76,9 @@ public class GUIListener implements Listener {
         BountyManager bountyManager = plugin.getBountyManager();
         bountyManager.addHunterMission(player, target.getUniqueId());
         
-        plugin.getMessageManager().sendMessage(player, "hunter.mission-added",
-                Map.of("target", target.getName()));
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("target", target.getName());
+        plugin.getMessageManager().sendMessage(player, "hunter.mission-added", placeholders);
     }
     
     private void handlePagination(Player player, ItemStack arrow, String title) {
