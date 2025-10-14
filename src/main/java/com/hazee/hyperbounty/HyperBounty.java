@@ -104,7 +104,7 @@ public class HyperBounty extends JavaPlugin {
     }
     
     private void startAutoSave() {
-        int autoSaveInterval = configManager.getInt("settings.auto-save", 300) * 20;
+        int autoSaveInterval = configManager.getInt("settings.auto-save") * 20;
         if (autoSaveInterval > 0) {
             SchedulerUtil.runTaskTimer(this, this::saveData, autoSaveInterval, autoSaveInterval);
         }
