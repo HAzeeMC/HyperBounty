@@ -28,18 +28,12 @@ public class KillstreakManager {
             return;
         }
         
-        ConfigurationSection rewardsSection = (ConfigurationSection) plugin.getConfigManager().getSetting("killstreaks.rewards");
-        if (rewardsSection != null) {
-            for (String key : rewardsSection.getKeys(false)) {
-                try {
-                    int streak = Integer.parseInt(key);
-                    double reward = rewardsSection.getDouble(key);
-                    killstreakRewards.put(streak, reward);
-                } catch (NumberFormatException e) {
-                    plugin.getLogger().warning("Invalid killstreak reward key: " + key);
-                }
-            }
-        }
+        // Default rewards
+        killstreakRewards.put(3, 50.0);
+        killstreakRewards.put(5, 100.0);
+        killstreakRewards.put(10, 250.0);
+        killstreakRewards.put(15, 500.0);
+        killstreakRewards.put(20, 1000.0);
     }
     
     public void handleKill(Player killer, Player victim) {
@@ -68,15 +62,14 @@ public class KillstreakManager {
         if (reward != null && reward > 0) {
             plugin.getEconomyHook().depositPlayer(player, reward);
             
-            Map<String, String> placeholders = Map.of(
-                    "player", player.getName(),
-                    "streak", String.valueOf(streak),
-                    "reward", plugin.getEconomyHook().format(reward)
-            );
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", player.getName());
+            placeholders.put("streak", String.valueOf(streak));
+            placeholders.put("reward", plugin.getEconomyHook().format(reward));
             
             plugin.getMessageManager().sendMessage(player, "killstreak.reward", placeholders);
             
-            if (plugin.getConfigManager().getBoolean("killstreaks.broadcast", true)) {
+            if (plugin.getConfigManager().getBoolean("killstreaks.broadcast")) {
                 for (Player online : plugin.getServer().getOnlinePlayers()) {
                     if (!online.getUniqueId().equals(player.getUniqueId())) {
                         plugin.getMessageManager().sendMessage(online, "killstreak.broadcast", placeholders);
@@ -96,9 +89,5 @@ public class KillstreakManager {
         if (killstreak != null) {
             killstreak.resetStreak();
         }
-    }
-    
-    public Map<UUID, Killstreak> getKillstreaks() {
-        return new HashMap<>(killstreaks);
     }
 }
