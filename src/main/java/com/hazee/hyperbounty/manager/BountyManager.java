@@ -2,7 +2,6 @@ package com.hazee.hyperbounty.manager;
 
 import com.hazee.hyperbounty.HyperBounty;
 import com.hazee.hyperbounty.model.BountyEntry;
-import com.hazee.hyperbounty.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -23,12 +22,10 @@ public class BountyManager {
     
     private void loadBounties() {
         List<BountyEntry> bounties = plugin.getDatabaseManager().getActiveBounties();
-        SchedulerUtil.runTask(plugin, () -> {
-            for (BountyEntry bounty : bounties) {
-                activeBounties.put(bounty.getTargetUUID(), bounty);
-            }
-            plugin.getLogger().info("Loaded " + bounties.size() + " active bounties");
-        });
+        for (BountyEntry bounty : bounties) {
+            activeBounties.put(bounty.getTargetUUID(), bounty);
+        }
+        plugin.getLogger().info("Loaded " + bounties.size() + " active bounties");
     }
     
     public boolean setBounty(Player setter, Player target, double amount) {
@@ -82,13 +79,11 @@ public class BountyManager {
         plugin.getMessageManager().sendMessage(setter, "bounty.set-success", placeholders);
         
         if (plugin.getConfigManager().getBoolean("bounty.broadcast-enabled")) {
-            SchedulerUtil.runTask(plugin, () -> {
-                for (Player online : plugin.getServer().getOnlinePlayers()) {
-                    if (!online.getUniqueId().equals(setter.getUniqueId())) {
-                        plugin.getMessageManager().sendMessage(online, "bounty.broadcast", placeholders);
-                    }
+            for (Player online : plugin.getServer().getOnlinePlayers()) {
+                if (!online.getUniqueId().equals(setter.getUniqueId())) {
+                    plugin.getMessageManager().sendMessage(online, "bounty.broadcast", placeholders);
                 }
-            });
+            }
         }
         
         return true;
