@@ -5,48 +5,68 @@ import com.hazee.hyperbounty.manager.BountyManager;
 import com.hazee.hyperbounty.manager.CooldownManager;
 import com.hazee.hyperbounty.manager.KillstreakManager;
 import com.hazee.hyperbounty.model.BountyEntry;
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class PlaceholderAPIExpansion extends PlaceholderExpansion {
+public class PlaceholderAPIExpansion {
     
     private final HyperBounty plugin;
+    private boolean placeholderApiEnabled = false;
     
     public PlaceholderAPIExpansion(HyperBounty plugin) {
         this.plugin = plugin;
     }
     
-    @Override
-    public @NotNull String getIdentifier() {
-        return "hyperbounty";
+    public void register() {
+        if (plugin.getServer().getPluginManager().getPlugin("PlaceholderAPI") == null) {
+            plugin.getLogger().info("PlaceholderAPI not found, placeholders disabled.");
+            placeholderApiEnabled = false;
+            return;
+        }
+        
+        try {
+            Class<?> expansionClass = Class.forName("me.clip.placeholderapi.expansion.PlaceholderExpansion");
+            Object expansion = new PlaceholderExpansionImpl();
+            
+            // Sử dụng reflection để gọi register()
+            java.lang.reflect.Method registerMethod = expansionClass.getMethod("register");
+            boolean success = (Boolean) registerMethod.invoke(expansion);
+            
+            if (success) {
+                plugin.getLogger().info("PlaceholderAPI expansion registered successfully!");
+                placeholderApiEnabled = true;
+            } else {
+                plugin.getLogger().warning("Failed to register PlaceholderAPI expansion!");
+                placeholderApiEnabled = false;
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error registering PlaceholderAPI expansion: " + e.getMessage());
+            placeholderApiEnabled = false;
+        }
     }
     
-    @Override
-    public @NotNull String getAuthor() {
-        return "H_Azee";
+    public void unregister() {
+        if (!placeholderApiEnabled) return;
+        
+        try {
+            Class<?> expansionClass = Class.forName("me.clip.placeholderapi.expansion.PlaceholderExpansion");
+            java.lang.reflect.Method unregisterMethod = expansionClass.getMethod("unregister");
+            unregisterMethod.invoke(this);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error unregistering PlaceholderAPI expansion: " + e.getMessage());
+        }
     }
     
-    @Override
-    public @NotNull String getVersion() {
-        return plugin.getDescription().getVersion();
-    }
-    
-    @Override
-    public boolean persist() {
-        return true;
-    }
-    
-    @Override
-    public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
+    public String onPlaceholderRequest(Player player, @NotNull String params) {
         if (player == null) return null;
         
         String[] args = params.split("_");
@@ -88,47 +108,27 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         }
     }
     
-    private String getBountyAmount(OfflinePlayer player) {
-        if (!player.isOnline()) return "0";
-        
+    // Các method helper giữ nguyên
+    private String getBountyAmount(Player player) {
         BountyManager bountyManager = plugin.getBountyManager();
-        try {
-            BountyEntry bounty = bountyManager.getBounty(player.getUniqueId()).get(2, TimeUnit.SECONDS);
-            return bounty != null ? plugin.getEconomyHook().format(bounty.getAmount()) : "0";
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            return "0";
-        }
+        BountyEntry bounty = bountyManager.getBounty(player.getUniqueId());
+        return bounty != null ? plugin.getEconomyHook().format(bounty.getAmount()) : "0";
     }
     
-    private String getBountySetter(OfflinePlayer player) {
-        if (!player.isOnline()) return "None";
-        
+    private String getBountySetter(Player player) {
         BountyManager bountyManager = plugin.getBountyManager();
-        try {
-            BountyEntry bounty = bountyManager.getBounty(player.getUniqueId()).get(2, TimeUnit.SECONDS);
-            return bounty != null ? bounty.getSetterName() : "None";
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            return "None";
-        }
+        BountyEntry bounty = bountyManager.getBounty(player.getUniqueId());
+        return bounty != null ? bounty.getSetterName() : "None";
     }
     
-    private boolean hasBounty(OfflinePlayer player) {
-        if (!player.isOnline()) return false;
-        
+    private boolean hasBounty(Player player) {
         BountyManager bountyManager = plugin.getBountyManager();
-        try {
-            BountyEntry bounty = bountyManager.getBounty(player.getUniqueId()).get(2, TimeUnit.SECONDS);
-            return bounty != null;
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            return false;
-        }
+        return bountyManager.getBounty(player.getUniqueId()) != null;
     }
     
-    private int getKillstreak(OfflinePlayer player) {
-        if (!player.isOnline()) return 0;
-        
+    private int getKillstreak(Player player) {
         KillstreakManager killstreakManager = plugin.getKillstreakManager();
-        return killstreakManager.getKillstreak(player.getPlayer());
+        return killstreakManager.getKillstreak(player);
     }
     
     private int getActiveBountiesCount() {
@@ -136,33 +136,28 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
         return bountyManager.getActiveBounties().size();
     }
     
-    private String formatCooldown(OfflinePlayer player, String type) {
-        if (!player.isOnline()) return "0";
-        
+    private String formatCooldown(Player player, String type) {
         CooldownManager cooldownManager = plugin.getCooldownManager();
-        Player onlinePlayer = player.getPlayer();
         long remaining = 0;
         
         switch (type.toLowerCase()) {
             case "kill":
-                remaining = cooldownManager.getKillCooldownRemaining(onlinePlayer) / 1000;
+                remaining = cooldownManager.getKillCooldownRemaining(player) / 1000;
                 break;
             case "reward":
-                remaining = cooldownManager.getRewardCooldownRemaining(onlinePlayer) / 1000;
+                remaining = cooldownManager.getRewardCooldownRemaining(player) / 1000;
                 break;
             case "bounty":
-                remaining = cooldownManager.getBountyCooldownRemaining(onlinePlayer) / 1000;
+                remaining = cooldownManager.getBountyCooldownRemaining(player) / 1000;
                 break;
         }
         
         return String.valueOf(remaining);
     }
     
-    private int getHunterMissionsCount(OfflinePlayer player) {
-        if (!player.isOnline()) return 0;
-        
+    private int getHunterMissionsCount(Player player) {
         BountyManager bountyManager = plugin.getBountyManager();
-        return bountyManager.getHunterMissions(player.getPlayer()).size();
+        return bountyManager.getHunterMissions(player).size();
     }
     
     private String getTopBounty(int position) {
@@ -173,9 +168,7 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
             return "None";
         }
         
-        // Sort by amount descending
         bounties.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
-        
         return bounties.get(position - 1).getTargetName();
     }
     
@@ -187,9 +180,55 @@ public class PlaceholderAPIExpansion extends PlaceholderExpansion {
             return "0";
         }
         
-        // Sort by amount descending
         bounties.sort((b1, b2) -> Double.compare(b2.getAmount(), b1.getAmount()));
-        
         return plugin.getEconomyHook().format(bounties.get(position - 1).getAmount());
+    }
+    
+    // Inner class để tránh dependency compile-time
+    private class PlaceholderExpansionImpl {
+        
+        public String getIdentifier() {
+            return "hyperbounty";
+        }
+        
+        public String getAuthor() {
+            return "H_Azee";
+        }
+        
+        public String getVersion() {
+            return plugin.getDescription().getVersion();
+        }
+        
+        public boolean persist() {
+            return true;
+        }
+        
+        public boolean register() {
+            try {
+                Class<?> placeholderAPI = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+                java.lang.reflect.Method registerMethod = placeholderAPI.getMethod("registerExpansion", Object.class);
+                registerMethod.invoke(null, this);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        
+        public void unregister() {
+            try {
+                Class<?> placeholderAPI = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+                java.lang.reflect.Method unregisterMethod = placeholderAPI.getMethod("unregisterExpansion", Object.class);
+                unregisterMethod.invoke(null, this);
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+        
+        public String onRequest(OfflinePlayer player, String params) {
+            if (player.isOnline()) {
+                return onPlaceholderRequest(player.getPlayer(), params);
+            }
+            return null;
+        }
     }
 }
