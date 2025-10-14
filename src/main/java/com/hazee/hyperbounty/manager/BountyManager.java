@@ -6,7 +6,6 @@ import com.hazee.hyperbounty.utils.SchedulerUtil;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BountyManager {
@@ -23,140 +22,129 @@ public class BountyManager {
     }
     
     private void loadBounties() {
-        plugin.getDatabaseManager().getActiveBounties().thenAccept(bounties -> {
+        // Load từ database sync
+        List<BountyEntry> bounties = plugin.getDatabaseManager().getActiveBounties();
+        SchedulerUtil.runTask(plugin, () -> {
+            for (BountyEntry bounty : bounties) {
+                activeBounties.put(bounty.getTargetUUID(), bounty);
+            }
+            plugin.getLogger().info("Loaded " + bounties.size() + " active bounties");
+        });
+    }
+    
+    public boolean setBounty(Player setter, Player target, double amount) {
+        double minAmount = plugin.getConfigManager().getDouble("bounty.min-amount");
+        double maxAmount = plugin.getConfigManager().getDouble("bounty.max-amount");
+        
+        if (amount < minAmount) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("min_amount", String.valueOf(minAmount));
+            plugin.getMessageManager().sendMessage(setter, "bounty.amount-too-low", placeholders);
+            return false;
+        }
+        
+        if (amount > maxAmount) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("max_amount", String.valueOf(maxAmount));
+            plugin.getMessageManager().sendMessage(setter, "bounty.amount-too-high", placeholders);
+            return false;
+        }
+        
+        if (!plugin.getEconomyHook().has(setter, amount)) {
+            plugin.getMessageManager().sendMessage(setter, "bounty.insufficient-funds");
+            return false;
+        }
+        
+        // Check if target already has a bounty
+        BountyEntry existingBounty = activeBounties.get(target.getUniqueId());
+        if (existingBounty != null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("target", target.getName());
+            plugin.getMessageManager().sendMessage(setter, "bounty.already-exists", placeholders);
+            return false;
+        }
+        
+        // Create new bounty
+        BountyEntry bounty = new BountyEntry(
+                target.getUniqueId(),
+                target.getName(),
+                setter.getUniqueId(),
+                setter.getName(),
+                amount
+        );
+        
+        // Charge the setter
+        plugin.getEconomyHook().withdrawPlayer(setter, amount);
+        
+        // Save to database and cache
+        plugin.getDatabaseManager().saveBounty(bounty);
+        activeBounties.put(target.getUniqueId(), bounty);
+        
+        // Broadcast message
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("setter", setter.getName());
+        placeholders.put("target", target.getName());
+        placeholders.put("amount", plugin.getEconomyHook().format(amount));
+        
+        plugin.getMessageManager().sendMessage(setter, "bounty.set-success", placeholders);
+        
+        if (plugin.getConfigManager().getBoolean("bounty.broadcast-enabled")) {
             SchedulerUtil.runTask(plugin, () -> {
-                for (BountyEntry bounty : bounties) {
-                    activeBounties.put(bounty.getTargetUUID(), bounty);
-                }
-                plugin.getLogger().info("Loaded " + bounties.size() + " active bounties");
-            });
-        });
-    }
-    
-    public CompletableFuture<Boolean> setBounty(Player setter, Player target, double amount) {
-        return CompletableFuture.supplyAsync(() -> {
-            double minAmount = plugin.getConfigManager().getDouble("bounty.min-amount");
-            double maxAmount = plugin.getConfigManager().getDouble("bounty.max-amount");
-            
-            if (amount < minAmount) {
-                SchedulerUtil.runTask(plugin, setter, () -> 
-                    plugin.getMessageManager().sendMessage(setter, "bounty.amount-too-low",
-                            Map.of("min_amount", String.valueOf(minAmount))));
-                return false;
-            }
-            
-            if (amount > maxAmount) {
-                SchedulerUtil.runTask(plugin, setter, () -> 
-                    plugin.getMessageManager().sendMessage(setter, "bounty.amount-too-high",
-                            Map.of("max_amount", String.valueOf(maxAmount))));
-                return false;
-            }
-            
-            if (!plugin.getEconomyHook().has(setter, amount)) {
-                SchedulerUtil.runTask(plugin, setter, () -> 
-                    plugin.getMessageManager().sendMessage(setter, "bounty.insufficient-funds"));
-                return false;
-            }
-            
-            // Check if target already has a bounty
-            BountyEntry existingBounty = activeBounties.get(target.getUniqueId());
-            if (existingBounty != null) {
-                SchedulerUtil.runTask(plugin, setter, () -> 
-                    plugin.getMessageManager().sendMessage(setter, "bounty.already-exists",
-                            Map.of("target", target.getName())));
-                return false;
-            }
-            
-            // Create new bounty
-            BountyEntry bounty = new BountyEntry(
-                    target.getUniqueId(),
-                    target.getName(),
-                    setter.getUniqueId(),
-                    setter.getName(),
-                    amount
-            );
-            
-            // Charge the setter
-            plugin.getEconomyHook().withdrawPlayer(setter, amount);
-            
-            // Save to database and cache
-            plugin.getDatabaseManager().saveBounty(bounty).join();
-            activeBounties.put(target.getUniqueId(), bounty);
-            
-            // Broadcast message
-            Map<String, String> placeholders = Map.of(
-                    "setter", setter.getName(),
-                    "target", target.getName(),
-                    "amount", plugin.getEconomyHook().format(amount)
-            );
-            
-            SchedulerUtil.runTask(plugin, setter, () -> 
-                plugin.getMessageManager().sendMessage(setter, "bounty.set-success", placeholders));
-            
-            if (plugin.getConfigManager().getBoolean("bounty.broadcast-enabled", true)) {
-                SchedulerUtil.runTask(plugin, () -> {
-                    for (Player online : plugin.getServer().getOnlinePlayers()) {
-                        if (!online.getUniqueId().equals(setter.getUniqueId())) {
-                            plugin.getMessageManager().sendMessage(online, "bounty.broadcast", placeholders);
-                        }
+                for (Player online : plugin.getServer().getOnlinePlayers()) {
+                    if (!online.getUniqueId().equals(setter.getUniqueId())) {
+                        plugin.getMessageManager().sendMessage(online, "bounty.broadcast", placeholders);
                     }
-                });
-            }
-            
-            return true;
-        });
+                }
+            });
+        }
+        
+        return true;
     }
     
-    public CompletableFuture<Boolean> claimBounty(Player hunter, Player target) {
-        return CompletableFuture.supplyAsync(() -> {
-            BountyEntry bounty = activeBounties.get(target.getUniqueId());
-            if (bounty == null) {
-                SchedulerUtil.runTask(plugin, hunter, () -> 
-                    plugin.getMessageManager().sendMessage(hunter, "bounty.not-found",
-                            Map.of("target", target.getName())));
-                return false;
-            }
-            
-            double taxPercent = plugin.getConfigManager().getDouble("bounty.tax-percent");
-            double taxAmount = bounty.getAmount() * (taxPercent / 100);
-            double reward = bounty.getAmount() - taxAmount;
-            
-            // Pay the hunter
-            plugin.getEconomyHook().depositPlayer(hunter, reward);
-            
-            // Mark bounty as completed
-            bounty.setCompleted(true);
-            bounty.setHunterUUID(hunter.getUniqueId());
-            bounty.setHunterName(hunter.getName());
-            bounty.setCompletedAt(System.currentTimeMillis());
-            
-            // Remove from active bounties
-            activeBounties.remove(target.getUniqueId());
-            
-            // Send messages
-            Map<String, String> placeholders = Map.of(
-                    "hunter", hunter.getName(),
-                    "target", target.getName(),
-                    "reward", plugin.getEconomyHook().format(reward),
-                    "tax", plugin.getEconomyHook().format(taxAmount),
-                    "original", plugin.getEconomyHook().format(bounty.getAmount())
-            );
-            
-            SchedulerUtil.runTask(plugin, hunter, () -> 
-                plugin.getMessageManager().sendMessage(hunter, "bounty.claim-success", placeholders));
-            
-            // Notify the bounty setter if online
-            Player setter = plugin.getServer().getPlayer(bounty.getSetterUUID());
-            if (setter != null && setter.isOnline()) {
-                SchedulerUtil.runTask(plugin, setter, () -> 
-                    plugin.getMessageManager().sendMessage(setter, "bounty.claimed-notify", placeholders));
-            }
-            
-            return true;
-        });
+    public boolean claimBounty(Player hunter, Player target) {
+        BountyEntry bounty = activeBounties.get(target.getUniqueId());
+        if (bounty == null) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("target", target.getName());
+            plugin.getMessageManager().sendMessage(hunter, "bounty.not-found", placeholders);
+            return false;
+        }
+        
+        double taxPercent = plugin.getConfigManager().getDouble("bounty.tax-percent");
+        double taxAmount = bounty.getAmount() * (taxPercent / 100);
+        double reward = bounty.getAmount() - taxAmount;
+        
+        // Pay the hunter
+        plugin.getEconomyHook().depositPlayer(hunter, reward);
+        
+        // Mark bounty as completed
+        bounty.setCompleted(true);
+        bounty.setHunterUUID(hunter.getUniqueId());
+        bounty.setHunterName(hunter.getName());
+        bounty.setCompletedAt(System.currentTimeMillis());
+        
+        // Remove from active bounties
+        activeBounties.remove(target.getUniqueId());
+        
+        // Send messages
+        Map<String, String> placeholders = new HashMap<>();
+        placeholders.put("hunter", hunter.getName());
+        placeholders.put("target", target.getName());
+        placeholders.put("reward", plugin.getEconomyHook().format(reward));
+        placeholders.put("tax", plugin.getEconomyHook().format(taxAmount));
+        placeholders.put("original", plugin.getEconomyHook().format(bounty.getAmount()));
+        
+        plugin.getMessageManager().sendMessage(hunter, "bounty.claim-success", placeholders);
+        
+        // Notify the bounty setter if online
+        Player setter = plugin.getServer().getPlayer(bounty.getSetterUUID());
+        if (setter != null && setter.isOnline()) {
+            plugin.getMessageManager().sendMessage(setter, "bounty.claimed-notify", placeholders);
+        }
+        
+        return true;
     }
     
-    // ... rest of the methods remain the same as previous version
     public BountyEntry getBounty(UUID targetUUID) {
         return activeBounties.get(targetUUID);
     }
@@ -175,9 +163,9 @@ public class BountyManager {
         Player setter = plugin.getServer().getPlayer(bounty.getSetterUUID());
         if (setter != null && setter.isOnline()) {
             plugin.getEconomyHook().depositPlayer(setter, bounty.getAmount());
-            SchedulerUtil.runTask(plugin, setter, () -> 
-                plugin.getMessageManager().sendMessage(setter, "bounty.refunded",
-                        Map.of("amount", plugin.getEconomyHook().format(bounty.getAmount()))));
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("amount", plugin.getEconomyHook().format(bounty.getAmount()));
+            plugin.getMessageManager().sendMessage(setter, "bounty.refunded", placeholders);
         }
         
         // Remove bounty
@@ -188,7 +176,7 @@ public class BountyManager {
     public boolean addHunterMission(Player hunter, UUID targetUUID) {
         Set<UUID> missions = hunterMissions.computeIfAbsent(hunter.getUniqueId(), k -> new HashSet<>());
         
-        if (missions.size() >= plugin.getConfigManager().getInt("hunter.max-active", 3)) {
+        if (missions.size() >= plugin.getConfigManager().getInt("hunter.max-active")) {
             return false;
         }
         
